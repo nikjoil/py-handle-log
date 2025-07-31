@@ -33,9 +33,9 @@ def parse_arg():
         help='Название отчета'
     )
 
-    # Правило: --data
+    # Правило: --date
     parser.add_argument(
-        '--data',
+        '--date',
         type=str,
         required=False,
         help='Фильтр по дате'
@@ -59,6 +59,33 @@ def read_logs(file_paths):
             print(f"Ошибка: Невалидный JSON {file_path}")
     
     return logs
+
+def filter_data_logs(logs, date_str):
+    """Фильтр логов по дате"""
+    if not date_str:
+        return logs
+    
+    try: 
+        filter_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        print(f"Ошибка: Измените формат даты на YYYY-MM-DD")
+        return logs
+    
+    filter_log = []
+
+    for log in logs:
+        log_date_str = log.get("@timestamp")
+        if not log_date_str:
+            continue
+
+        try:
+            entry_date = datetime.fromisoformat(log_date_str).date()
+            if entry_date == filter_date:
+                filter_log.append(log)
+        except (ValueError, TypeError):
+            continue
+    
+    return filter_log
 
 
 def processed_data(logs):
@@ -85,6 +112,7 @@ def prepare_report_data(process_data):
         if value['count'] > 0:
             average_time = value['total_time'] / value['count']
             report.append([
+                
                 endpoint,
                 value['count'],
                 round(average_time, 3)
@@ -97,11 +125,17 @@ def main():
     args = parse_arg()
     
     if args.report == 'average':
-        all_logs = read_logs(args.file)
-        if not all_logs:
+        logs = read_logs(args.file)
+        if not logs:
             print("Нет логов для обработки")
             return
-        process_data = processed_data(all_logs)
+        
+        filter_logs = filter_data_logs(logs, args.date)
+        if not filter_logs:
+            print(f"Нет логов для даты: {args.data}")
+            return
+        
+        process_data = processed_data(logs)
         report_data = prepare_report_data(process_data)
         
         headers = ["handler", "total", "avg_response_time"]
