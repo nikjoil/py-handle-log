@@ -8,6 +8,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from tabulate import tabulate
 
+# python main.py --file example1.log --report user_agent --date 2025-06-22
 
 def parse_arg():
     """Функция для разбора арг. ком. строки"""
@@ -29,7 +30,7 @@ def parse_arg():
         '--report',
         type=str,
         default='average',
-        choices=['average'], # разрешены только значения из списка
+        choices=['average', 'user_agent'], # разрешены только значения из списка
         help='Название отчета'
     )
 
@@ -142,9 +143,44 @@ class AverageTimeReport(GenReport):
 
         return report_title, report, headers    
     
+
+class UserAgentRep(GenReport):
+    """Используемый браузер"""
+
+    def process_log(self, logs):
+        """Счетчик встречи браузеров в логах"""
+        browser_counts = defaultdict(int)
+
+        for log in logs:
+            user_agent_str = log.get("http_user_agent")
+            
+            if user_agent_str:
+                if "Chrome/" in user_agent_str and "Safari/" in user_agent_str:
+                    browser_counts["Chrome"] += 1
+                elif "Firefox/" in user_agent_str:
+                    browser_counts["Firefox"] += 1
+                elif "Safari/" in user_agent_str:
+                    browser_counts['Safari'] += 1
+                else:
+                    browser_counts["Other"] += 1
+        
+        return browser_counts
+    
+
+    def render_report(self, processed_data, report_date=None):
+        report_data = list(processed_data.items())
+        headers = ["User-Agent", "total"]
+        report_title = "Отчет по браузерам"
+
+        if report_data:
+            report_title += f" за {report_date}"
+
+        return report_title, report_data, headers
+
+
 REPORT = {
     'average': AverageTimeReport,
-
+    'user_agent': UserAgentRep,
 }
 
 
