@@ -4,6 +4,8 @@ import json
 # по умолчанию. Это упрощает такие задачи, как подсчёт и 
 # группировка в словарях.
 from collections import defaultdict
+from datetime import datetime
+from abc import ABC, abstractmethod
 from tabulate import tabulate
 
 
@@ -31,17 +33,26 @@ def parse_arg():
         help='Название отчета'
     )
 
+    # Правило: --data
+    parser.add_argument(
+        '--data',
+        type=str,
+        required=False,
+        help='Фильтр по дате'
+    )
+
     return parser.parse_args()
 
 
-def read_parse_logs(file_paths):
+def read_logs(file_paths):
     """Читает и парсит JSON из лог-файлов"""
     logs = []
     for file_path in file_paths:
         try:
             with open(file_path, 'r') as f:
-                file_logs = json.load(f) # список словарей
-                logs.extend(file_logs) # extend добавляет по отдельности, а append как ОДИН элемент
+                for line in f:
+                    if line.strip():
+                        logs.append(json.loads(line))
         except FileNotFoundError:
             print(f"Ошибка: Файл не найден {file_path}")
         except json.JSONDecodeError:
@@ -50,13 +61,13 @@ def read_parse_logs(file_paths):
     return logs
 
 
-def process_data(logs):
+def processed_data(logs):
     """Считываем запрос и складываем время ответа"""
     endpoints_data = defaultdict(lambda: {'count': 0, 'total_time': 0.0})
     
     for log_entry in logs:
         # Извлекаем данные из словаря
-        endpoint = log_entry.get('endpoint')
+        endpoint = log_entry.get('url')
         response_time = log_entry.get('response_time')
         # Если есть endpoint и время ответа(число)
         if endpoint and isinstance(response_time, (int, float)):
@@ -86,11 +97,11 @@ def main():
     args = parse_arg()
     
     if args.report == 'average':
-        all_logs = read_parse_logs(args.file)
+        all_logs = read_logs(args.file)
         if not all_logs:
             print("Нет логов для обработки")
             return
-        process_data = process_data(all_logs)
+        process_data = processed_data(all_logs)
         report_data = prepare_report_data(process_data)
         
         headers = ["handler", "total", "avg_response_time"]
