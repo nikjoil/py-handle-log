@@ -88,60 +88,90 @@ def filter_data_logs(logs, date_str):
     return filter_log
 
 
-def processed_data(logs):
-    """Считываем запрос и складываем время ответа"""
-    endpoints_data = defaultdict(lambda: {'count': 0, 'total_time': 0.0})
+class GenReport(ABC):
+    """Базовый класс для отчетов"""
+
+    @abstractmethod
+    def process_log(self, logs):
+        """Обработка сырых логов"""
+        pass
+
+    @abstractmethod
+    def render_report(self, processed_data, report_date=None):
+        """Обработанные логи -> таблица"""
+        pass
+
+
+class AverageTimeReport(GenReport):
+    """"""
     
-    for log_entry in logs:
-        # Извлекаем данные из словаря
-        endpoint = log_entry.get('url')
-        response_time = log_entry.get('response_time')
-        # Если есть endpoint и время ответа(число)
-        if endpoint and isinstance(response_time, (int, float)):
-            endpoints_data[endpoint]['count'] += 1
-            endpoints_data[endpoint]['total_time'] += response_time
+    def process_log(self, logs):
+        """Считываем запрос и складываем время ответа"""
+        endpoints_data = defaultdict(lambda: {'count': 0, 'total_time': 0.0})
+        
+        for log_entry in logs:
+            # Извлекаем данные из словаря
+            endpoint = log_entry.get('url')
+            response_time = log_entry.get('response_time')
+            # Если есть endpoint и время ответа(число)
+            if endpoint and isinstance(response_time, (int, float)):
+                endpoints_data[endpoint]['count'] += 1
+                endpoints_data[endpoint]['total_time'] += response_time
 
-    return endpoints_data
+        return endpoints_data
 
 
-def prepare_report_data(process_data):
-    """Среднее время и подготовка данных"""
-    report = []
+    def render_report(self, processed_data, report_date=None):
+        """Среднее время и подготовка данных"""
+        report = []
+        
+        for endpoint, value in processed_data.items():
+            if value['count'] > 0:
+                average_time = value['total_time'] / value['count']
+                report.append([
+                    endpoint,
+                    value['count'],
+                    round(average_time, 3)
+                ])
+
+        headers = ["handler", "total", "avg_response_time"]
+        report_title = "Отчет c количеством запросов и средним временем ответа"
+
+        if report_date: 
+            report_title += f" за {report_date}"
+
+        return report_title, report, headers    
     
-    for endpoint, value in process_data.items():
-        if value['count'] > 0:
-            average_time = value['total_time'] / value['count']
-            report.append([
-                
-                endpoint,
-                value['count'],
-                round(average_time, 3)
-            ])
+REPORT = {
+    'average': AverageTimeReport,
 
-    return report
+}
 
 
 def main():
     args = parse_arg()
+    logs = read_logs(args.file)
+    filter_logs = filter_data_logs(logs, args.date)
+
+    if not filter_logs:
+        print(f"Нет логов для даты: {args.data}")
+        return
     
-    if args.report == 'average':
-        logs = read_logs(args.file)
-        if not logs:
-            print("Нет логов для обработки")
-            return
-        
-        filter_logs = filter_data_logs(logs, args.date)
-        if not filter_logs:
-            print(f"Нет логов для даты: {args.data}")
-            return
-        
-        process_data = processed_data(logs)
-        report_data = prepare_report_data(process_data)
-        
-        headers = ["handler", "total", "avg_response_time"]
-        print(tabulate(report_data, headers=headers, tablefmt="grid"))
-    else:
-        print(f"Другие отчеты!")
+    report_class = REPORT.get(args.report)
+
+    if not report_class:
+        print(f"Ошибка: отчет '{args.report}' не найден")
+        return
+    
+    report_gen = report_class()
+    processed_data = report_gen.process_log(filter_logs)
+    report_title, table_data, headers = report_gen.render_report(
+        processed_data,
+        report_date=args.date
+        )
+    
+    print(f"\n{report_title}\n")
+    print(tabulate(table_data, headers=headers))
 
 if __name__ == "__main__":
     main()
