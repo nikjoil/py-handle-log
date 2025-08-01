@@ -1,8 +1,5 @@
 import argparse
 import json
-# defauldict автоматическая инициализация несуществующих ключей значением 
-# по умолчанию. Это упрощает такие задачи, как подсчёт и 
-# группировка в словарях.
 from collections import defaultdict
 from datetime import datetime
 from abc import ABC, abstractmethod
@@ -14,7 +11,6 @@ def parse_arg():
     # Объект парсер, description при вызове --help
     parser = argparse.ArgumentParser(description='Скрипт для обработки лог-файлов')
     
-    # Добавление правил (аргументов):
     # Правило: --file
     parser.add_argument(
         '--file',
