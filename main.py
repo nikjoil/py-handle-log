@@ -8,15 +8,6 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from tabulate import tabulate
 
-# python main.py --file example1.log --report user_agent --date 2025-06-22
-# убрать OTHER 95 И СДЕЛАТЬ ТЕСТИРОВАНИЕ
-# User-Agent      total
-# ------------  -------
-# Firefox             2
-# Chrome              2
-# Safari              1
-# Other              95
-
 
 def parse_arg():
     """Функция для разбора арг. ком. строки"""
@@ -180,7 +171,7 @@ class UserAgentRep(GenReport):
         headers = ["User-Agent", "total"]
         report_title = "Отчет по браузерам"
 
-        if report_data:
+        if report_date:
             report_title += f" за {report_date}"
 
         return report_title, report_data, headers
