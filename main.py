@@ -9,6 +9,14 @@ from abc import ABC, abstractmethod
 from tabulate import tabulate
 
 # python main.py --file example1.log --report user_agent --date 2025-06-22
+# убрать OTHER 95 И СДЕЛАТЬ ТЕСТИРОВАНИЕ
+# User-Agent      total
+# ------------  -------
+# Firefox             2
+# Chrome              2
+# Safari              1
+# Other              95
+
 
 def parse_arg():
     """Функция для разбора арг. ком. строки"""
@@ -154,7 +162,7 @@ class UserAgentRep(GenReport):
         for log in logs:
             user_agent_str = log.get("http_user_agent")
             
-            if user_agent_str:
+            if user_agent_str and user_agent_str != "...":
                 if "Chrome/" in user_agent_str and "Safari/" in user_agent_str:
                     browser_counts["Chrome"] += 1
                 elif "Firefox/" in user_agent_str:
