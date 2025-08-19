@@ -1,0 +1,6 @@
+# Files safe to remove after migration to handle_log package
+parser.py
+log_io.py
+reports.py
+py_handle_log/
+pyproject.toml (if you prefer to keep, ignore)
