@@ -5,7 +5,7 @@ repos:
     - id: black
       language_version: python3
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.19.11
+  rev: main
   hooks:
     - id: ruff
       args: ["--fix"]

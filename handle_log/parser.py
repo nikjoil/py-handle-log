@@ -1,5 +1,4 @@
 import argparse
-from typing import Namespace
 
 
 def parse_arg() -> argparse.Namespace:

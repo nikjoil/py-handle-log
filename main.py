@@ -1,8 +1,3 @@
-import argparse
-import json
-from collections import defaultdict
-from datetime import datetime
-from abc import ABC, abstractmethod
 from tabulate import tabulate
 from handle_log.parser import parse_arg
 from handle_log.log_io import read_logs, filter_data_logs
@@ -25,7 +20,9 @@ def main() -> None:
 
     report_gen = report_cls()
     processed = report_gen.process_log(filtered)
-    title, table_data, headers = report_gen.render_report(processed, report_date=args.date)
+    title, table_data, headers = report_gen.render_report(
+        processed, report_date=args.date
+    )
 
     print(f"\n{title}\n")
     print(tabulate(table_data, headers=headers))

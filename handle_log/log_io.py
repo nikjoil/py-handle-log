@@ -18,11 +18,13 @@ def read_logs(file_paths: List[str]) -> List[Dict[str, Any]]:
                         print(f"Ошибка: Невалидный JSON в файле {file_path}")
         except FileNotFoundError:
             print(f"Ошибка: Файл не найден {file_path}")
-            
+
     return logs
 
 
-def filter_data_logs(logs: List[Dict[str, Any]], date_str: Optional[str]) -> List[Dict[str, Any]]:
+def filter_data_logs(
+    logs: List[Dict[str, Any]], date_str: Optional[str]
+) -> List[Dict[str, Any]]:
     """Фильтрует логи по дате (YYYY-MM-DD)."""
     if not date_str:
         return logs

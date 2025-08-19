@@ -9,7 +9,9 @@ class GenReport(ABC):
         pass
 
     @abstractmethod
-    def render_report(self, processed_data: Any, report_date: Optional[str] = None) -> Tuple[str, List[List[Any]], List[str]]:
+    def render_report(
+        self, processed_data: Any, report_date: Optional[str] = None
+    ) -> Tuple[str, List[List[Any]], List[str]]:
         pass
 
 

@@ -9,7 +9,7 @@ from main import (
 )
 
 
-def  test_average_time_report():
+def test_average_time_report():
     logs = [
         {"url": "/api/users", "response_time": 0.2},
         {"url": "/api/data", "response_time": 0.5},
@@ -20,11 +20,13 @@ def  test_average_time_report():
 
     report = AverageTimeReport()
     res = report.process_log(logs)
-    assert res['/api/users']['count'] == 2
-    assert res['/api/users']['total_time'] == pytest.approx(0.6) # pytest.approx для точного сравнения float
-    assert res['/api/data']['count'] == 1
-    assert res['/api/data']['total_time'] == pytest.approx(0.5)
-    
+    assert res["/api/users"]["count"] == 2
+    assert res["/api/users"]["total_time"] == pytest.approx(
+        0.6
+    )  # pytest.approx для точного сравнения float
+    assert res["/api/data"]["count"] == 1
+    assert res["/api/data"]["total_time"] == pytest.approx(0.5)
+
 
 def test_user_agent_rep():
     logs = [
@@ -33,10 +35,10 @@ def test_user_agent_rep():
         {"http_user_agent": "Mozilla/5.0... Chrome/101.0... Safari/537.36"},
         {"http_user_agent": "Mozilla/5.0... Safari/605.1.15"},
         {"http_user_agent": "curl/7.68.0"},
-        {"http_user_agent": "..."},         
-        {"url": "/api/data"},               
+        {"http_user_agent": "..."},
+        {"url": "/api/data"},
     ]
-    
+
     report = UserAgentRep()
     res = report.process_log(logs)
     assert res["Firefox"] == 1
@@ -68,7 +70,7 @@ def test_read_logs(tmp_path):
 
     logs = read_logs([str(test_log), str(broken_log), "nonexist.log"])
     assert len(logs) == 1
-    assert logs[0]['url'] == '/test_read_logs'
+    assert logs[0]["url"] == "/test_read_logs"
 
 
 def test_main_integration_average_time_report(tmp_path, capsys):
@@ -78,11 +80,22 @@ def test_main_integration_average_time_report(tmp_path, capsys):
         '{"@timestamp": "2025-10-26T11:00:00+00:00", "url": "/api/tomorrow", "response_time": 0.1}\n'
     )
 
-    sys.argv = ['main.py', '--file', str(log_file), '--report', 'average', '--date', '2025-10-25']
+    sys.argv = [
+        "main.py",
+        "--file",
+        str(log_file),
+        "--report",
+        "average",
+        "--date",
+        "2025-10-25",
+    ]
     main()
     captured = capsys.readouterr()
     console_output = captured.out
 
-    assert "Отчет c количеством запросов и средним временем ответа за 2025-10-25" in console_output
+    assert (
+        "Отчет c количеством запросов и средним временем ответа за 2025-10-25"
+        in console_output
+    )
     assert "/api/today" in console_output
     assert "/api/tomorrow" not in console_output
